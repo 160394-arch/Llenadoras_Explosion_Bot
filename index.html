@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard LL1 — Explosiones</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;700&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -32,9 +33,10 @@ body{
   background:linear-gradient(90deg,#040C18,#081528 40%,#040C18);
   border-bottom:1.5px solid var(--blue);
   box-shadow:0 2px 30px #1F6FEB20;
-  height:52px;
-  display:flex;align-items:center;padding:0 20px;gap:14px;
+  display:flex;flex-direction:column;padding:4px 14px;gap:3px;
 }
+.hdr-row1{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;width:100%;}
+.hdr-row2{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;width:100%;}
 .logo{display:flex;align-items:center;gap:10px;}
 .logo-ico{
   width:22px;height:22px;flex-shrink:0;
@@ -61,16 +63,16 @@ body{
 }
 .sep{width:1px;height:34px;background:var(--border);flex-shrink:0;}
 .filters{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;}
-.fg{display:flex;flex-direction:column;gap:2px;}
-.fg label{font-size:8px;color:var(--txt3);letter-spacing:1px;font-family:"JetBrains Mono",monospace;text-transform:uppercase;}
+.fg{display:flex;flex-direction:column;gap:1px;}
+.fg label{font-size:7px;color:var(--txt3);letter-spacing:1px;font-family:"JetBrains Mono",monospace;text-transform:uppercase;}
 .fg select,.fg input[type=date]{
   background:var(--bg3);border:1px solid var(--border);color:var(--txt);
-  font-family:"JetBrains Mono",monospace;font-size:10px;
-  padding:4px 8px;border-radius:3px;outline:none;cursor:pointer;
+  font-family:"JetBrains Mono",monospace;font-size:9px;
+  padding:2px 6px;border-radius:3px;outline:none;cursor:pointer;
   transition:border .15s;
 }
 .fg select:hover,.fg input:hover,.fg select:focus,.fg input:focus{border-color:var(--blue);}
-.fg input{width:120px;}.fg select{width:90px;}
+.fg input{width:110px;}.fg select{width:88px;}
 .btn-cl{
   background:transparent;border:1px solid var(--border);color:var(--txt3);
   font-family:"Barlow Condensed",sans-serif;font-size:11px;font-weight:600;
@@ -243,39 +245,46 @@ body{
 
 <!-- HEADER -->
 <header class="hdr">
-  <div class="logo">
-    <div class="logo-ico"></div>
-    <div>
-      <h1>Monitoreo de Explosiones en Llenadoras</h1>
-      <p>CONTROL Y ANÁLISIS · ENE – MAY 2026</p>
+  <!-- FILA 1 -->
+  <div class="hdr-row1">
+    <div class="logo">
+      <div class="logo-ico"></div>
+      <div>
+        <h1 style="font-size:12px;letter-spacing:1.5px;">Explosiones en Llenadoras</h1>
+        <p>CONTROL Y ANÁLISIS · ENE – MAY 2026</p>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <button class="badge" id="btnLL1" onclick="switchLL('LL1')" style="cursor:pointer;border:1px solid var(--blue);font-size:11px;padding:5px 14px;">LLENADORA 1</button>
+    <button class="badge" id="btnLL2" onclick="switchLL('LL2')" style="cursor:pointer;border:1px solid var(--border);opacity:.55;font-size:11px;padding:5px 14px;">LLENADORA 2</button>
+    <div class="sep"></div>
+    <a href="https://anheuserbuschinbev.sharepoint.com/sites/CUSCOSite/SitePages/ETO-LLENADORA-L1.aspx?csf=1&web=1&e=Cr3SLx"
+      target="_blank"
+      style="cursor:pointer;background:#0C1320;border:1px solid #238636;color:#3FB950;
+      font-family:'JetBrains Mono',monospace;font-size:10px;padding:5px 12px;border-radius:4px;
+      display:flex;align-items:center;gap:5px;text-decoration:none;white-space:nowrap;font-weight:700;"
+      onmouseover="this.style.background='#1a2f1a'" onmouseout="this.style.background='#0C1320'">
+      ⬇ Descargar Excel
+    </a>
+    <label style="cursor:pointer;background:#0C1320;border:1px solid #1C4E7A;color:#58A6FF;
+      font-family:'JetBrains Mono',monospace;font-size:10px;padding:5px 12px;border-radius:4px;
+      display:flex;align-items:center;gap:5px;white-space:nowrap;font-weight:700;"
+      onmouseover="this.style.background='#0d1f33'" onmouseout="this.style.background='#0C1320'">
+      📂 Cargar xlsx
+      <input type="file" accept=".xlsx,.xls" style="display:none" onchange="loadLocalExcel(this)">
+    </label>
+    
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:8px;white-space:nowrap;display:flex;align-items:center;gap:4px;opacity:0.6;">
+        <span style="color:#3D5068;text-transform:uppercase;font-size:7px;">Actualizar:</span>
+        <span style="color:#3FB950;">① Descargar</span>
+        <span style="color:#1C2D45;">▶</span>
+        <span style="color:#58A6FF;">② Cargar xlsx</span>
+      </div>
     </div>
   </div>
-  <div style="display:flex;gap:4px;align-items:center;">
-  <button class="badge" id="btnLL1" onclick="switchLL('LL1')" style="cursor:pointer;border:1px solid var(--blue);">LL LLENADORA 1</button>
-  <button class="badge" id="btnLL2" onclick="switchLL('LL2')" style="cursor:pointer;border:1px solid var(--border);opacity:.55;">LL LLENADORA 2</button>
-  <button id="btnRefresh" onclick="fetchExcel()" style="
-    cursor:pointer;background:#0C1320;border:1px solid #238636;
-    color:#3FB950;font-family:'JetBrains Mono',monospace;font-size:10px;
-    padding:4px 10px;border-radius:4px;display:flex;align-items:center;gap:5px;
-    transition:all .2s;" 
-    onmouseover="this.style.background='#1a2f1a'" 
-    onmouseout="this.style.background='#0C1320'">
-    <span id="refreshIcon">⟳</span> <span id="refreshTxt">Actualizar</span>
-  </button>
-  <label title="Cargar Excel manualmente (cuando SharePoint bloquea)" style="
-    cursor:pointer;background:#0C1320;border:1px solid #1C4E7A;
-    color:#58A6FF;font-family:'JetBrains Mono',monospace;font-size:10px;
-    padding:4px 10px;border-radius:4px;display:flex;align-items:center;gap:5px;
-    transition:all .2s;white-space:nowrap;"
-    onmouseover="this.style.background='#0d1f33'"
-    onmouseout="this.style.background='#0C1320'">
-    <span>📂</span> <span>Cargar xlsx</span>
-    <input type="file" accept=".xlsx,.xls" style="display:none"
-      onchange="loadLocalExcel(this)">
-  </label>
-</div>
-  <div class="sep"></div>
-  <div class="filters">
+  <!-- FILA 2: Filtros -->
+  <div class="hdr-row2">
     <div class="fg"><label>Desde</label><input type="date" id="fD" value="2026-01-01"></div>
     <div class="fg"><label>Hasta</label><input type="date" id="fH" value="2026-05-31"></div>
     <div class="fg"><label>Mes</label>
@@ -292,12 +301,17 @@ body{
         <option>T1</option><option>T2</option><option>T3</option>
       </select>
     </div>
+    <div class="fg"><label>Formato</label>
+      <select id="fFmt">
+        <option value="">Todos</option>
+      </select>
+    </div>
     <button class="btn-cl" onclick="clearF()">x Limpiar</button>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+      <span id="refreshStatus" style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#8B949E;
+        white-space:nowrap;padding:3px 12px;background:var(--bg3);border:1px solid #1F6FEB40;border-radius:4px;min-width:220px;text-align:center;"></span>
+    </div>
   </div>
-  <div class="hdr-right">
-    <div class="live"><span class="ldot"></span>ACTIVO&nbsp;<span id="clk">--:--:--</span></div>
-  </div>
-<span id="refreshStatus" style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#3D5068;margin-left:8px;"></span>
 </header>
 
 <!-- PAGE -->
@@ -348,7 +362,7 @@ body{
     <div class="card">
       <div class="ch">
         <div class="ch-bar" style="background:var(--blue)"></div>
-        <h3>Explosiones por Hora del Día</h3>
+        <h3 id="tituloHora">Explosiones por Hora del Día</h3>
         <span class="note" id="noteH"></span>
       </div>
       <div class="timeline-wrap" id="tlWrap">
@@ -406,8 +420,8 @@ body{
       <div class="plan-mark">PR</div>
       <div class="plan-t">Plan de Reacción</div>
       <p class="plan-sub">Procedimiento ante explosiones críticas — Llenadora 1</p>
-      <a class="plan-btn" href="#" onclick="return false">Abrir Plan</a>
-      <div class="plan-note">[ Insertar hipervínculo SharePoint ]<br>Ing. de Mantenimiento · LL1</div>
+      <a class="plan-btn" href="https://splan.ab-inbev.com/plans/view?data=JTIyNDI5YTk2MjgtYzYyNS00NDBkLWE3YjctNzNlMzg2YjYyMDNiJTIy" target="_blank">↗ Abrir Plan</a>
+      <div class="plan-note">SPLAN · AB InBev · Llenadora<br>Ing. de Mantenimiento · LL1</div>
     </div>
     <div class="card">
       <div class="ch"><div class="ch-bar" style="background:var(--blue)"></div><h3>Detalle de Registros</h3><span class="note" id="dtCnt"></span></div>
@@ -461,12 +475,19 @@ const MESES_ARR = ['enero','febrero','marzo','abril','mayo'];
 // ── SEMANA FILTER POPULATION ────────────────────────────────────────────────
 function populateSemanas(){
   const fS = document.getElementById('fS');
-  const cur = fS.value;
   while(fS.options.length > 1) fS.remove(1);
   [...new Set(RAW.map(r=>r[2]).filter(s=>s>0))].sort((a,b)=>a-b).forEach(s=>{
     const o = document.createElement('option');
     o.value = s; o.text = 'Sem '+s;
     fS.appendChild(o);
+  });
+  // Poblar Formato
+  const fFmt = document.getElementById('fFmt');
+  while(fFmt.options.length > 1) fFmt.remove(1);
+  [...new Set(RAW.map(r=>r[7]).filter(Boolean))].sort().forEach(f=>{
+    const o = document.createElement('option');
+    o.value = f; o.text = f;
+    fFmt.appendChild(o);
   });
 }
 populateSemanas();
@@ -484,22 +505,24 @@ populateSemanas();
 // ── GET FILTERED DATA ────────────────────────────────────────────────────────
 // r = [fecha, mesNum, semana, turno, hora, n_explosiones, [valvulas]]
 function gf(){
-  const d = document.getElementById('fD').value,
-        h = document.getElementById('fH').value,
-        m = document.getElementById('fM').value,
-        s = document.getElementById('fS').value,
-        t = document.getElementById('fT').value;
+  const d  = document.getElementById('fD').value,
+        h  = document.getElementById('fH').value,
+        m  = document.getElementById('fM').value,
+        s  = document.getElementById('fS').value,
+        t  = document.getElementById('fT').value,
+        fm = document.getElementById('fFmt').value;
   return RAW.filter(r=>
-    (!d || r[0]>=d) &&
-    (!h || r[0]<=h) &&
-    (!m || MES_NAME[r[1]]===m) &&
-    (!s || r[2]==s) &&
-    (!t || r[3]===t)
+    (!d  || r[0]>=d) &&
+    (!h  || r[0]<=h) &&
+    (!m  || MES_NAME[r[1]]===m) &&
+    (!s  || r[2]==s) &&
+    (!t  || r[3]===t) &&
+    (!fm || r[7]===fm)
   );
 }
 
 function clearF(){
-  ['fD','fH','fM','fS','fT'].forEach(id=>{
+  ['fD','fH','fM','fS','fT','fFmt'].forEach(id=>{
     const el = document.getElementById(id);
     if(el.tagName==='SELECT') el.selectedIndex=0;
     else el.value='';
@@ -590,6 +613,12 @@ function rHora(data){
 
   document.getElementById('noteH').textContent =
     mx>0?'Pico: '+labels[picoIdx]+' ('+mx+' exp)':'';
+  // Título dinámico con zona verde/roja
+  const horasCriticas = vals.filter(v=>v>3).length;
+  document.getElementById('tituloHora').innerHTML =
+    'Explosiones por Hora del Día &nbsp;<span style="font-size:8px;padding:2px 8px;border-radius:3px;background:#3FB95020;color:#3FB950;border:1px solid #3FB95050">≤3 = OK</span>' +
+    ' &nbsp;<span style="font-size:8px;padding:2px 8px;border-radius:3px;background:#F8514920;color:#F85149;border:1px solid #F8514950">&gt;3 = CRÍTICO</span>' +
+    (horasCriticas>0?' &nbsp;<span style="color:#F85149;font-size:8px">'+horasCriticas+' horas críticas</span>':'');
 
   const canvas = document.getElementById('cH');
   const ctx2   = canvas.getContext('2d');
@@ -603,12 +632,9 @@ function rHora(data){
       datasets:[{
         label:'Explosiones',
         data:vals,
-        backgroundColor: vals.map((v,i)=>{
-          if(i===picoIdx) return '#F85149';
-          if(v/mx > 0.7)  return '#F0883E';
-          if(v/mx > 0.4)  return '#E3B341AA';
-          return '#1F6FEBAA';
-        }),
+        backgroundColor: vals.map(v => v > 3 ? '#F8514988' : '#3FB95088'),
+        borderColor:     vals.map(v => v > 3 ? '#F85149' : '#3FB950'),
+        borderWidth: 1,
         borderRadius:3,
         borderSkipped:false
       }]
@@ -619,12 +645,39 @@ function rHora(data){
       plugins:{
         legend:{display:false},
         tooltip:{...TT, callbacks:{
-          label: items => ' '+items.raw+' explosiones'
-        }}
+          label: items => ' '+items.raw+' exp — '+(items.raw>3?'⚠ CRÍTICO':'✓ OK')
+        }},
+        annotation:{
+          annotations:{
+            zonaBuena:{
+              type:'box',
+              yMin:0, yMax:3,
+              backgroundColor:'rgba(63,185,80,0.06)',
+              borderColor:'rgba(63,185,80,0.2)',
+              borderWidth:1,
+              drawTime:'beforeDatasetsDraw'
+            },
+            lineaLimite:{
+              type:'line',
+              yMin:3, yMax:3,
+              borderColor:'rgba(63,185,80,0.6)',
+              borderWidth:1.5,
+              borderDash:[4,4],
+              label:{
+                content:'Límite 3 exp',
+                enabled:true,
+                position:'end',
+                font:{size:8, family:'JetBrains Mono'},
+                color:'#3FB950',
+                backgroundColor:'rgba(10,22,40,0.8)'
+              }
+            }
+          }
+        }
       },
       scales:{
         x:{grid:GR, ticks:TK},
-        y:{grid:GR, ticks:TK}
+        y:{grid:GR, ticks:TK, min:0}
       }
     }
   });
@@ -643,10 +696,12 @@ function rTurno(bt){
       labels:ks,
       datasets:[{
         data:vs,
-        backgroundColor:['#1F6FEB','#E3B341','#F85149'],
-        borderColor:'#0C1320',
-        borderWidth:3,
-        hoverOffset:8
+        backgroundColor:['#1F6FEB','#2D7DD2','#F85149'],
+        borderColor:'#070B12',
+        borderWidth:2,
+        hoverOffset:12,
+        hoverBorderColor:'#E6EDF3',
+        hoverBorderWidth:2
       }]
     },
     options:{
@@ -656,10 +711,16 @@ function rTurno(bt){
       plugins:{
         legend:{
           position:'bottom',
-          labels:{color:'#8B949E',font:{family:'JetBrains Mono',size:10},padding:12}
+          labels:{
+            color:'#E6EDF3',
+            font:{family:'JetBrains Mono',size:10},
+            padding:14,
+            usePointStyle:true,
+            pointStyleWidth:10
+          }
         },
         tooltip:{...TT, callbacks:{
-          label:it=>' '+it.label+': '+it.raw+' ('+( tot>0?((it.raw/tot)*100).toFixed(1):0 )+'%)'
+          label:it=>' '+it.label+': '+it.raw+' exp ('+( tot>0?((it.raw/tot)*100).toFixed(1):0 )+'%)'
         }}
       }
     }
@@ -707,32 +768,73 @@ function rTop(top10, total){
 function rPareto(top10){
   dc('p');
   const ctx = document.getElementById('cPar').getContext('2d');
-  const vs  = top10.map(d=>d.c);
+  // Ordenar de mayor a menor para que el Pareto tenga sentido
+  const sorted = [...top10].sort((a,b)=>b.c-a.c);
+  const vs  = sorted.map(d=>d.c);
   const tot = vs.reduce((a,b)=>a+b,0)||1;
   let cum=0;
   const cp = vs.map(v=>{ cum+=v; return parseFloat((cum/tot*100).toFixed(1)); });
   CHARTS.p = new Chart(ctx, {
     type:'bar',
     data:{
-      labels: top10.map(d=>'V'+d.v),
+      labels: sorted.map(d=>'V'+d.v),
       datasets:[
-        {type:'bar',  label:'Exp.',    data:vs, backgroundColor:'#E3B341', borderRadius:3, yAxisID:'y'},
-        {type:'line', label:'% Acum.', data:cp, borderColor:'#F85149', backgroundColor:'transparent',
-         pointBackgroundColor:'#F85149', pointRadius:4, tension:.3, yAxisID:'y2'}
+        {
+          type:'bar', label:'Exp.',
+          data:vs,
+          // Primeras 3 (las más críticas) en rojo, resto en azul
+          backgroundColor: vs.map((_,i)=>i<3?'#F85149BB':'#1A5C2E'),
+          borderColor:     vs.map((_,i)=>i<3?'#F85149':'#2ECC71'),
+          borderWidth:1,
+          borderRadius:3,
+          yAxisID:'y'
+        },
+        {
+          type:'line', label:'% Acum.',
+          data:cp,
+          borderColor:'#E3B341',
+          backgroundColor:'transparent',
+          pointBackgroundColor:'#E3B341',
+          pointBorderColor:'#070B12',
+          pointRadius:4,
+          pointHoverRadius:6,
+          tension:.3,
+          yAxisID:'y2'
+        }
       ]
     },
     options:{
       responsive:true,
       maintainAspectRatio:false,
       plugins:{
-        legend:{labels:{color:'#8B949E',font:{family:'JetBrains Mono',size:9}}},
-        tooltip:{...TT}
+        legend:{
+          labels:{
+            color:'#8B949E',
+            font:{family:'JetBrains Mono',size:9},
+            usePointStyle:true
+          }
+        },
+        tooltip:{
+          ...TT,
+          callbacks:{
+            label: it => it.datasetIndex===0
+              ? ' '+it.raw+' exp ('+(tot>0?((it.raw/tot)*100).toFixed(1):0)+'%)'
+              : ' Acumulado: '+it.raw+'%'
+          }
+        }
       },
       scales:{
         x:{grid:GR, ticks:TK},
-        y:{grid:GR, ticks:TK, title:{display:true,text:'Exp.',color:'#3D5068',font:{size:9}}},
-        y2:{position:'right',grid:{display:false},ticks:{...TK, callback:v=>v+'%'},
-            min:0,max:100}
+        y:{
+          grid:GR, ticks:TK,
+          title:{display:true,text:'Explosiones',color:'#3D5068',font:{size:9}}
+        },
+        y2:{
+          position:'right',
+          grid:{display:false},
+          ticks:{...TK, callback:v=>v+'%'},
+          min:0, max:100
+        }
       }
     }
   });
@@ -748,7 +850,7 @@ function rMes(mesArr, mesLbl){
       labels:mesLbl,
       datasets:[{
         data:mesArr,
-        backgroundColor:'#1F6FEB',
+        backgroundColor: mesArr.map(v=>v===Math.max(...mesArr)?'#F85149':'#3FB950'),
         hoverBackgroundColor:'#58A6FF',
         borderRadius:4,
         label:'Explosiones'
@@ -774,10 +876,7 @@ function rDia(dsArr, dsLbl){
       labels:dsLbl,
       datasets:[{
         data:dsArr,
-        backgroundColor: dsArr.map(v=>{
-          const r=v/mx;
-          return r>.7?'#F85149':r>.4?'#F0883E':r>.2?'#E3B341':'#1F6FEB';
-        }),
+        backgroundColor: dsArr.map(v=>v===mx?'#F85149':'#3FB950'),
         borderRadius:4,
         label:'Explosiones'
       }]
@@ -917,7 +1016,7 @@ setInterval(()=>{
 }, 1000);
 
 // ── EVENT LISTENERS ──────────────────────────────────────────────────────────
-['fD','fH','fM','fS','fT'].forEach(id=>
+['fD','fH','fM','fS','fT','fFmt'].forEach(id=>
   document.getElementById(id).addEventListener('change', upd));
 window.addEventListener('resize', ()=>{ upd(); });
 
@@ -1027,7 +1126,8 @@ function parseSheet(ws){
       });
     }
 
-    records.push([fecha, mesNum, sw, turno, hora, n, valvs]);
+    const fmt = String(getCel('FORMATO')||getCel('Formato')||'').trim();
+    records.push([fecha, mesNum, sw, turno, hora, n, valvs, fmt]);
   }
   console.log('Records parseados:', records.length);
   return records;
@@ -1115,10 +1215,7 @@ async function fetchExcel(){
 
   if(!ab){
     // Todos los intentos fallaron — mostrar instrucciones claras
-    statusEl.innerHTML =
-      '✗ CORS bloqueado. Usa el botón 📂 Cargar xlsx:<br>' +
-      '1) <a href="https://anheuserbuschinbev.sharepoint.com/sites/pe/bo/pcuz/_layouts/15/download.aspx?sourcedoc=%7B06CDB914-A453-4DF3-8215-7C22FC9C498A%7D" target="_blank" style="color:#58A6FF">→ Descarga el Excel aquí</a><br>' +
-      '2) Haz clic en <strong style="color:#58A6FF">📂 Cargar xlsx</strong> y selecciónalo.';
+    statusEl.innerHTML = '';
     statusEl.style.color = '#F85149';
     btn.disabled = false;
     btn.style.opacity = '1';
@@ -1188,8 +1285,8 @@ function loadLocalExcel(input){
       RAW = ACTIVE_LL==='LL1' ? RAW_LL1 : RAW_LL2;
       const total = RAW_LL1.reduce((s,r)=>s+r[5],0) + RAW_LL2.reduce((s,r)=>s+r[5],0);
       const now = new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-      statusEl.textContent = '✓ Cargado desde archivo local ' + now + ' · ' + total.toLocaleString() + ' exp.';
-      statusEl.style.color = '#3FB950';
+      statusEl.innerHTML = '🕒 Última actualización: <strong style="color:#3FB950">' + now + '</strong> &nbsp;|&nbsp; ' + total.toLocaleString() + ' exp. totales';
+      statusEl.style.color = '#8B949E';
 
       populateSemanas();
       upd();
@@ -1204,6 +1301,11 @@ function loadLocalExcel(input){
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
+// Mostrar mensaje inicial en status
+(function(){
+  const s = document.getElementById('refreshStatus');
+  if(s) s.innerHTML = '<span style="color:#3D5068;">Sin datos — carga el Excel para comenzar</span>';
+})();
 upd();
 </script>
 </body>
