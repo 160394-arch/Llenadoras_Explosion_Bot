@@ -945,23 +945,29 @@ function buildCandidateUrls(){
 
 // ── PARSE EXCEL ROWS → compact array format ───────────────────────────────────
 function parseSheet(ws){
-  // Find header row (row with 'Año','MES','SEMANA'...)
   const range = XLSX.utils.decode_range(ws['!ref']||'A1:A1');
+  
+  // Busca fila de cabecera — la que contiene 'Parametro' en cualquier columna
   let headerRow = -1;
-  for(let r=range.s.r; r<=Math.min(range.e.r, 30); r++){
-    const cell = ws[XLSX.utils.encode_cell({r,c:3})]; // column D = Parametro
-    if(cell && String(cell.v).trim()==='Parametro'){ headerRow=r; break; }
+  for(let r=range.s.r; r<=Math.min(range.e.r, 50); r++){
+    for(let c=range.s.c; c<=Math.min(range.e.c, 20); c++){
+      const cell = ws[XLSX.utils.encode_cell({r,c})];
+      if(cell && String(cell.v).trim()==='Parametro'){ headerRow=r; break; }
+    }
+    if(headerRow>=0) break;
   }
-  if(headerRow<0) return [];
+  if(headerRow<0){ console.warn('parseSheet: no se encontró fila de cabecera'); return []; }
 
-  // Get column indices from header row
+  // Mapea nombre de columna → índice
   const headers = {};
   for(let c=range.s.c; c<=range.e.c; c++){
     const cell = ws[XLSX.utils.encode_cell({r:headerRow,c})];
-    if(cell) headers[String(cell.v).trim()] = c;
+    if(cell && cell.v!=null) headers[String(cell.v).trim()] = c;
   }
+  console.log('Headers encontrados:', Object.keys(headers));
 
-  const MES_MAP = {enero:1,febrero:2,marzo:3,abril:4,mayo:5};
+  const MES_MAP = {enero:1,febrero:2,marzo:3,abril:4,mayo:5,
+                   junio:6,julio:7,agosto:8,septiembre:9,octubre:10,noviembre:11,diciembre:12};
   const records = [];
 
   for(let r=headerRow+1; r<=range.e.r; r++){
@@ -969,49 +975,52 @@ function parseSheet(ws){
       const c = headers[col];
       if(c===undefined) return null;
       const cell = ws[XLSX.utils.encode_cell({r,c})];
-      return cell ? cell.v : null;
+      return (cell && cell.v!=null) ? cell.v : null;
     };
 
-    const valorRaw = getCel('Valor');
     const fechaRaw = getCel('FECHA');
-    if(valorRaw===null || valorRaw===undefined || fechaRaw===null) continue;
+    if(fechaRaw===null) continue; // fila vacía
 
-    const n = Number(valorRaw)||0;
+    const valorRaw = getCel('Valor');
+    // Valor null = feriado o sin registro → 0
+    const n = (valorRaw===null || valorRaw===undefined) ? 0 : (Number(valorRaw)||0);
 
-    // Parse date
+    // Parse fecha — puede venir como Date JS, número serial Excel, o string
     let fecha = '';
-    if(typeof fechaRaw === 'number'){
-      const d = XLSX.SSF.parse_date_code(fechaRaw);
-      fecha = `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+    if(fechaRaw instanceof Date || (typeof fechaRaw==='object' && fechaRaw)){
+      const d = new Date(fechaRaw);
+      if(!isNaN(d)) fecha = d.toISOString().slice(0,10);
+    } else if(typeof fechaRaw==='number'){
+      try{
+        const d = XLSX.SSF.parse_date_code(fechaRaw);
+        fecha = `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+      } catch(e){ continue; }
     } else {
-      try{ fecha = new Date(fechaRaw).toISOString().slice(0,10); } catch(e){ continue; }
+      try{ fecha = new Date(String(fechaRaw)).toISOString().slice(0,10); } catch(e){ continue; }
     }
+    if(!fecha || fecha==='Invalid Date') continue;
 
-    // Parse hora
+    // Parse hora — puede venir como Date JS con hora, número fraccionario, o string
     let hora = -1;
     const horaRaw = getCel('Hora_Target1');
     if(horaRaw!==null){
-      if(typeof horaRaw==='number'){
-        hora = Math.floor(horaRaw * 24) % 24;
+      if(horaRaw instanceof Date || (typeof horaRaw==='object' && horaRaw)){
+        hora = new Date(horaRaw).getUTCHours();
+      } else if(typeof horaRaw==='number'){
+        hora = Math.round(horaRaw * 24) % 24;
       } else {
-        try{ hora = new Date('1970-01-01T'+String(horaRaw)).getHours(); } catch(e){}
+        try{ hora = parseInt(String(horaRaw).split(':')[0]); } catch(e){}
       }
     }
 
-    // Parse mes
     const mesStr = String(getCel('MES')||'').toLowerCase().trim();
     const mesNum = MES_MAP[mesStr]||0;
-
-    // Parse semana
     const sw = Number(getCel('SEMANA'))||0;
-
-    // Parse turno
     const turno = String(getCel('Turno')||'').trim();
 
-    // Parse válvulas
     const valvRaw = getCel('N° Válvula');
     const valvs = [];
-    if(valvRaw!==null && valvRaw!==0){
+    if(valvRaw!==null && valvRaw!==0 && valvRaw!==''){
       String(valvRaw).split(/[,\s.]+/).forEach(p=>{
         const v = parseInt(p);
         if(v>=1 && v<=80) valvs.push(v);
@@ -1020,6 +1029,7 @@ function parseSheet(ws){
 
     records.push([fecha, mesNum, sw, turno, hora, n, valvs]);
   }
+  console.log('Records parseados:', records.length);
   return records;
 }
 
