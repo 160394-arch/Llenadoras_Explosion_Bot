@@ -285,13 +285,13 @@ body{
   </div>
   <!-- FILA 2: Filtros -->
   <div class="hdr-row2">
-    <div class="fg"><label>Desde</label><input type="date" id="fD" value="2026-01-01"></div>
-    <div class="fg"><label>Hasta</label><input type="date" id="fH" value="2026-05-31"></div>
+    <div class="fg"><label>Desde</label><input type="date" id="fD" value="2026-01-01"
+      onchange="document.getElementById('fH').min=this.value; if(document.getElementById('fH').value<this.value) document.getElementById('fH').value=this.value;"></div>
+    <div class="fg"><label>Hasta</label><input type="date" id="fH" value="2026-05-31" min="2026-01-01"
+      onchange="document.getElementById('fD').max=this.value; if(document.getElementById('fD').value>this.value) document.getElementById('fD').value=this.value;"></div>
     <div class="fg"><label>Mes</label>
       <select id="fM">
         <option value="">Todos</option>
-        <option>enero</option><option>febrero</option><option>marzo</option>
-        <option>abril</option><option>mayo</option>
       </select>
     </div>
     <div class="fg"><label>Semana</label><select id="fS"><option value="">Todas</option></select></div>
@@ -364,6 +364,13 @@ body{
         <div class="ch-bar" style="background:var(--blue)"></div>
         <h3 id="tituloHora">Explosiones por Hora del Día</h3>
         <span class="note" id="noteH"></span>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0;">
+          <label style="font-size:8px;color:var(--txt3);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;">Día</label>
+          <select id="fHoraDia" style="background:var(--bg3);border:1px solid var(--border);color:var(--txt);
+            font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;border-radius:3px;outline:none;cursor:pointer;">
+            <option value="">Todos</option>
+          </select>
+        </div>
       </div>
       <div class="timeline-wrap" id="tlWrap">
         <canvas id="cH"></canvas>
@@ -378,12 +385,8 @@ body{
     </div>
   </div>
 
-  <!-- ROW 3: Top10 + Pareto -->
-  <div class="g2">
-    <div class="card">
-      <div class="ch"><div class="ch-bar" style="background:var(--orange)"></div><h3>Top 10 Válvulas Críticas</h3><span class="note" id="noteTop"></span></div>
-      <div class="chart-box"><canvas id="cTop"></canvas></div>
-    </div>
+  <!-- ROW 3: Solo Pareto -->
+  <div class="g2" style="grid-template-columns:1fr">
     <div class="card">
       <div class="ch"><div class="ch-bar" style="background:var(--yellow)"></div><h3>Análisis Pareto de Válvulas</h3></div>
       <div class="chart-box"><canvas id="cPar"></canvas></div>
@@ -398,7 +401,7 @@ body{
         <div class="chart-box-sm"><canvas id="cMes"></canvas></div>
       </div>
       <div class="card">
-        <div class="ch"><div class="ch-bar" style="background:var(--orange)"></div><h3>Explosiones por Día de Semana</h3></div>
+        <div class="ch"><div class="ch-bar" style="background:var(--orange)"></div><h3>Explosiones por Semana</h3></div>
         <div class="chart-box-sm"><canvas id="cDS"></canvas></div>
       </div>
     </div>
@@ -414,26 +417,13 @@ body{
     </div>
   </div>
 
-  <!-- ROW 5: Plan + Detalle tabla -->
-  <div class="g2">
-    <div class="plan">
-      <div class="plan-mark">PR</div>
-      <div class="plan-t">Plan de Reacción</div>
-      <p class="plan-sub">Procedimiento ante explosiones críticas — Llenadora 1</p>
-      <a class="plan-btn" href="https://splan.ab-inbev.com/plans/view?data=JTIyNDI5YTk2MjgtYzYyNS00NDBkLWE3YjctNzNlMzg2YjYyMDNiJTIy" target="_blank">↗ Abrir Plan</a>
-      <div class="plan-note">SPLAN · AB InBev · Llenadora</div>
-    </div>
-    <div class="card">
-      <div class="ch"><div class="ch-bar" style="background:var(--blue)"></div><h3>Detalle de Registros</h3><span class="note" id="dtCnt"></span></div>
-      <div class="dt-scroll">
-        <table class="dt">
-          <thead><tr>
-            <th>Fecha</th><th>Hora</th><th>Turno</th><th>Válvula</th><th>Exp.</th><th>Comentario</th>
-          </tr></thead>
-          <tbody id="dtBody"></tbody>
-        </table>
-      </div>
-    </div>
+  <!-- ROW 5: Solo Plan -->
+  <div class="plan">
+    <div class="plan-mark">PR</div>
+    <div class="plan-t">Plan de Reacción</div>
+    <p class="plan-sub">Procedimiento ante explosiones críticas — Llenadora 1</p>
+    <a class="plan-btn" href="https://splan.ab-inbev.com/plans/view?data=JTIyNDI5YTk2MjgtYzYyNS00NDBkLWE3YjctNzNlMzg2YjYyMDNiJTIy" target="_blank">↗ Abrir Plan</a>
+    <div class="plan-note">SPLAN · AB InBev · Llenadora</div>
   </div>
 
   <!-- ROW 6: Análisis -->
@@ -494,6 +484,21 @@ function populateSemanas(){
     o.value = f; o.text = f;
     fFmt.appendChild(o);
   });
+  // Poblar días para filtro de hora
+  populateHoraDias();
+}
+
+function populateHoraDias(){
+  const sel = document.getElementById('fHoraDia');
+  if(!sel) return;
+  const cur = sel.value;
+  while(sel.options.length > 1) sel.remove(1);
+  [...new Set(RAW.map(r=>r[0]))].sort().forEach(d=>{
+    const o = document.createElement('option');
+    o.value = d; o.text = d;
+    sel.appendChild(o);
+  });
+  if([...sel.options].some(o=>o.value===cur)) sel.value = cur;
 }
 populateSemanas();
 
@@ -527,7 +532,11 @@ function gf(){
 }
 
 function clearF(){
-  ['fD','fH','fM','fS','fT','fFmt'].forEach(id=>{
+  document.getElementById('fHoraDia')?.addEventListener('change', () => {
+  const data = gf();
+  rHora(data);
+});
+['fD','fH','fM','fS','fT','fFmt'].forEach(id=>{
     const el = document.getElementById(id);
     if(el.tagName==='SELECT') el.selectedIndex=0;
     else el.value='';
@@ -606,6 +615,9 @@ function dc(id){ if(CHARTS[id]){ CHARTS[id].destroy(); delete CHARTS[id]; } }
 
 // ── HORA TIMELINE ─────────────────────────────────────────────────────────────
 function rHora(data){
+  // Filtro propio: si hay día seleccionado en fHoraDia, usar solo ese día
+  const diaFiltro = document.getElementById('fHoraDia')?.value || '';
+  if(diaFiltro) data = RAW.filter(r => r[0] === diaFiltro);
   dc('h');
   // Build hourly totals (sum across all dates)
   const bh = new Array(24).fill(0);
@@ -733,7 +745,7 @@ function rTurno(bt){
 // ── TOP 10 VÁLVULAS ───────────────────────────────────────────────────────────
 function rTop(top10, total){
   dc('tp');
-  const ctx = document.getElementById('cTop').getContext('2d');
+  const _ct = document.getElementById('cTop'); if(!_ct) return; const ctx = _ct.getContext('2d');
   const mx  = top10[0]?top10[0].c:1;
   CHARTS.tp = new Chart(ctx, {
     type:'bar',
@@ -868,18 +880,27 @@ function rMes(mesArr, mesLbl){
   });
 }
 
-// ── DÍAS DE SEMANA ────────────────────────────────────────────────────────────
+// ── EXPLOSIONES POR SEMANA ───────────────────────────────────────────────────
 function rDia(dsArr, dsLbl){
   dc('d');
   const ctx = document.getElementById('cDS').getContext('2d');
-  const mx  = Math.max(...dsArr, 1);
+  // Calcular explosiones por semana desde RAW filtrado
+  const data = gf();
+  const semMap = {};
+  data.forEach(r => {
+    const s = r[2]; // semana
+    if(s > 0) semMap[s] = (semMap[s]||0) + r[5];
+  });
+  const sems = Object.keys(semMap).map(Number).sort((a,b)=>a-b);
+  const vals = sems.map(s => semMap[s]);
+  const mx   = Math.max(...vals, 1);
   CHARTS.d = new Chart(ctx, {
     type:'bar',
     data:{
-      labels:dsLbl,
+      labels: sems.map(s => 'Sem '+s),
       datasets:[{
-        data:dsArr,
-        backgroundColor: dsArr.map(v=>v===mx?'#F85149':'#3FB950'),
+        data: vals,
+        backgroundColor: vals.map(v=>v===mx?'#F85149':'#3FB950'),
         borderRadius:4,
         label:'Explosiones'
       }]
@@ -887,8 +908,14 @@ function rDia(dsArr, dsLbl){
     options:{
       responsive:true,
       maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{...TT}},
-      scales:{x:{grid:GR,ticks:TK},y:{grid:GR,ticks:TK}}
+      plugins:{
+        legend:{display:false},
+        tooltip:{...TT, callbacks:{label: it => ' '+it.raw+' exp.'}}
+      },
+      scales:{
+        x:{grid:GR, ticks:TK},
+        y:{grid:GR, ticks:TK}
+      }
     }
   });
 }
@@ -942,8 +969,8 @@ function hideTip(){ document.getElementById('vtip').style.opacity='0'; }
 function rDetail(data){
   const s = [...data].filter(r=>r[5]>0).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,200);
   const tot = data.filter(r=>r[5]>0).length;
-  setText('dtCnt', s.length+'/'+tot+' registros');
-  document.getElementById('dtBody').innerHTML = s.map(r=>{
+  const _dc=document.getElementById('dtCnt'); if(_dc) _dc.textContent= s.length+'/'+tot+' registros';
+  const _db=document.getElementById('dtBody'); if(_db) _db.innerHTML = s.map(r=>{
     const d  = r[0]?r[0].split('-').reverse().join('/'):'—';
     const h  = r[4]>=0?String(r[4]).padStart(2,'0')+':00':'—';
     const tc = {T1:'color:var(--blue2)',T2:'color:var(--yellow)',T3:'color:var(--red)'}[r[3]]||'';
@@ -1002,12 +1029,10 @@ function upd(){
   rKPI(a);
   rHora(data);
   rTurno(a.bt);
-  rTop(a.top10, a.total);
   rPareto(a.top10);
   rMes(a.mesArr, a.mesLbl);
   rDia(a.dsArr, a.dsLbl);
   rValve(a.bv);
-  rDetail(data);
   rAna(a);
 }
 
@@ -1018,6 +1043,10 @@ setInterval(()=>{
 }, 1000);
 
 // ── EVENT LISTENERS ──────────────────────────────────────────────────────────
+document.getElementById('fHoraDia')?.addEventListener('change', () => {
+  const data = gf();
+  rHora(data);
+});
 ['fD','fH','fM','fS','fT','fFmt'].forEach(id=>
   document.getElementById(id).addEventListener('change', upd));
 window.addEventListener('resize', ()=>{ upd(); });
@@ -1243,16 +1272,51 @@ async function fetchExcel(){
   }
 }
 
-// ── CARGA LOCAL DE EXCEL (alternativa cuando CORS falla) ────────────────────
+// ── JSONBIN CONFIG ────────────────────────────────────────────────────────────
+const JBIN_ID  = '6a32cb52da38895dfed179d7';
+const JBIN_KEY = '$2a$10$QHNbykL8Yh6x96oRFSWC6u0mwZnooaWsyGpGl1JPKfGfH5ZLpK8P2';
+const JBIN_URL = `https://api.jsonbin.io/v3/b/${JBIN_ID}`;
+
+async function jbinRead(){
+  try {
+    const r = await fetch(JBIN_URL + '/latest', {
+      headers: { 'X-Master-Key': JBIN_KEY, 'X-Bin-Meta': 'false' }
+    });
+    if(!r.ok) return null;
+    return await r.json();
+  } catch(e){ return null; }
+}
+
+async function jbinWrite(ll1, ll2, lastFecha){
+  try {
+    await fetch(JBIN_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JBIN_KEY },
+      body: JSON.stringify({
+        ll1, ll2,
+        uploaded_at: new Date().toISOString(),
+        last_fecha: lastFecha
+      })
+    });
+  } catch(e){}
+}
+
+function setStatus(html, color){
+  const s = document.getElementById('refreshStatus');
+  if(!s) return;
+  if(html.includes('<')) s.innerHTML = html;
+  else s.textContent = html;
+  if(color) s.style.color = color;
+}
+
+// ── CARGA LOCAL DE EXCEL ──────────────────────────────────────────────────────
 function loadLocalExcel(input){
   const file = input.files[0];
   if(!file) return;
-  const statusEl = document.getElementById('refreshStatus');
-  statusEl.textContent = '⟳ Leyendo archivo local...';
-  statusEl.style.color = '#E3B341';
+  setStatus('⟳ Leyendo archivo local...', '#E3B341');
 
   const reader = new FileReader();
-  reader.onload = function(e){
+  reader.onload = async function(e){
     try {
       const ab = e.target.result;
       const wb = XLSX.read(ab, {type:'array', cellDates:false});
@@ -1260,40 +1324,70 @@ function loadLocalExcel(input){
       const sh1 = wb.SheetNames.find(n=>n.toUpperCase().includes('LLEN1'));
       const sh2 = wb.SheetNames.find(n=>n.toUpperCase().includes('LLEN2'));
 
-      if(sh1){ RAW_LL1.length=0; parseSheet(wb.Sheets[sh1]).forEach(r=>RAW_LL1.push(r)); }
-      if(sh2){ RAW_LL2.length=0; parseSheet(wb.Sheets[sh2]).forEach(r=>RAW_LL2.push(r)); }
-
       if(!sh1 && !sh2){
-        statusEl.textContent = '✗ No se encontraron hojas LLEN1/LLEN2 en el archivo';
-        statusEl.style.color = '#F85149';
+        setStatus('✗ No se encontraron hojas LLEN1/LLEN2 en el archivo', '#F85149');
         return;
       }
 
+      if(sh1){ RAW_LL1.length=0; parseSheet(wb.Sheets[sh1]).forEach(r=>RAW_LL1.push(r)); }
+      if(sh2){ RAW_LL2.length=0; parseSheet(wb.Sheets[sh2]).forEach(r=>RAW_LL2.push(r)); }
+
       RAW = ACTIVE_LL==='LL1' ? RAW_LL1 : RAW_LL2;
+
+      // Guardar en JSONBin para todos los usuarios
+      setStatus('⟳ Guardando datos compartidos...', '#E3B341');
+      const allFechas = [...RAW_LL1, ...RAW_LL2].map(r=>r[0]).filter(Boolean).sort();
+      const lastFecha = allFechas[allFechas.length-1] || '';
+      await jbinWrite(RAW_LL1, RAW_LL2, lastFecha);
+
       const total = RAW_LL1.reduce((s,r)=>s+r[5],0) + RAW_LL2.reduce((s,r)=>s+r[5],0);
       const now = new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-      statusEl.innerHTML = '🕒 Última actualización: <strong style="color:#3FB950">' + now + '</strong> &nbsp;|&nbsp; ' + total.toLocaleString() + ' exp. totales';
-      statusEl.style.color = '#8B949E';
+      setStatus(
+        '✓ Actualizado ' + now + ' · ' + total.toLocaleString() + ' exp. totales · <span style="color:#3FB950">✓ Guardado para todos</span>',
+        '#8B949E'
+      );
 
       populateSemanas();
       upd();
     } catch(err){
-      statusEl.textContent = '✗ Error al leer: ' + err.message;
-      statusEl.style.color = '#F85149';
+      setStatus('✗ Error al leer: ' + err.message, '#F85149');
     }
-    // Reset para permitir cargar el mismo archivo de nuevo
     input.value = '';
   };
   reader.readAsArrayBuffer(file);
 }
 
-// ── INIT ─────────────────────────────────────────────────────────────────────
-// Mostrar mensaje inicial en status
-(function(){
-  const s = document.getElementById('refreshStatus');
-  if(s) s.innerHTML = '<span style="color:#3D5068;">Sin datos — carga el Excel para comenzar</span>';
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(async function(){
+  setStatus('🔄 Cargando datos compartidos...', '#E3B341');
+
+  const saved = await jbinRead();
+  if(saved && saved.ll1 && saved.ll1.length > 0){
+    RAW_LL1.length = 0;
+    saved.ll1.forEach(r => RAW_LL1.push(r));
+  }
+  if(saved && saved.ll2 && saved.ll2.length > 0){
+    RAW_LL2.length = 0;
+    saved.ll2.forEach(r => RAW_LL2.push(r));
+  }
+
+  RAW = ACTIVE_LL==='LL1' ? RAW_LL1 : RAW_LL2;
+
+  if(RAW_LL1.length > 0 || RAW_LL2.length > 0){
+    const total = RAW_LL1.reduce((s,r)=>s+r[5],0) + RAW_LL2.reduce((s,r)=>s+r[5],0);
+    const lastFecha = saved.last_fecha || '';
+    const uploadedAt = saved.uploaded_at ? new Date(saved.uploaded_at).toLocaleString('es-PE') : '';
+    setStatus(
+      '✓ ' + total.toLocaleString() + ' exp. totales · Últ. carga: <strong style="color:#3FB950">' + uploadedAt + '</strong>',
+      '#8B949E'
+    );
+  } else {
+    setStatus('<span style="color:#3D5068;">Sin datos — carga el Excel para comenzar</span>', '');
+  }
+
+  populateSemanas();
+  upd();
 })();
-upd();
 </script>
 </body>
 </html>
